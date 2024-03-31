@@ -13,11 +13,11 @@ impl TrainingData<'_> {
         TrainingData { input, output }
     }
 
-    pub fn data_amount(&self) -> usize {
+    pub fn data_size(&self) -> usize {
         cmp::min(self.input.len(), self.output.len())
     }
 
-    pub fn input_size(&self) -> usize {
+    pub fn input_length(&self) -> usize {
         self.input[0].len()
     }
 }
@@ -28,17 +28,21 @@ struct Vision {
 }
 
 impl Vision {
-    fn new(size: usize, threshold: f64) -> Vision {
+    fn new(size: usize, threshold: f64, random: bool) -> Vision {
         let mut temp = Vision {
-            weights: Vec::new(),
+            weights: vec![0.5; size],
             threshold,
         };
 
-        let mut rng = rand::thread_rng();
+        if random {
+            let mut rng = rand::thread_rng();
 
-        //initialize weights
-        for _ in 0..size {
-            temp.weights.push(rng.gen::<f64>());
+            temp.weights.clear();
+
+            //initialize weights
+            for _ in 0..size {
+                temp.weights.push(rng.gen::<f64>());
+            }
         }
 
         info!("Random Weights: {:?}", temp.weights);
@@ -61,18 +65,24 @@ impl Vision {
         sum > self.threshold
     }
 
-    fn train(&mut self, data: &TrainingData, lrate: f64, epoch: i32, err_margin: f64) {
-        for i in 0..epoch {
+    fn train(
+        &mut self,
+        data: &TrainingData,
+        learn_strength: f64,
+        iterations: i32,
+        err_margin: f64,
+    ) {
+        for i in 0..iterations {
             let mut err_sum = 0.0;
 
-            for k in 0..data.data_amount() {
+            for k in 0..data.data_size() {
                 let err = data.output[k] - self.output(&data.input[k]);
                 debug!("epoch:{} err:{}", i, err);
 
                 err_sum += err;
 
-                for y in 0..(data.input_size() - 1) {
-                    let delta = lrate * data.input[k][y] * err as f64;
+                for y in 0..(data.input_length() - 1) {
+                    let delta = learn_strength * data.input[k][y] * err as f64;
                     self.weights[y] += delta;
                 }
             }
@@ -100,30 +110,20 @@ fn main() {
 
     let training_data = TrainingData::new(
         vec![
-            vec![0.0, 0.0, 0.0],
-            vec![0.0, 0.7, 0.0],
-            vec![0.0, 0.8, 0.0],
-            vec![1.0, 0.0, 1.0],
-            vec![1.0, 0.6, 0.0],
-            vec![0.0, 0.7, 1.0],
-            vec![0.0, 0.0, 0.0],
-            vec![1.0, 0.0, 1.0],
-            vec![1.0, 1.0, 1.0],
+            vec![0.0, 0.0],
+            vec![0.0, 1.0],
+            vec![1.0, 0.0],
+            vec![1.0, 1.0],
         ],
-        &[0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0],
+        &[0.0, 1.0, 1.0, 0.0],
     );
 
-    let mut eye = Vision::new(training_data.data_amount(), 0.5);
+    let mut eye = Vision::new(training_data.data_size(), 0.5, false);
 
-    eye.train(&training_data, 0.1, 200, 0.01);
+    eye.train(&training_data, 0.1, 100, 0.1);
 
-    info!("Without noise.");
-    eye.pretty_output(&[0.0, 0.7, 0.0]);
-    eye.pretty_output(&[0.0, 0.5, 0.0]);
-    eye.pretty_output(&[0.0, 0.2, 0.0]);
-
-    info!("With noise.");
-    eye.pretty_output(&[0.8, 0.7, 0.3]);
-    eye.pretty_output(&[0.3, 0.5, 1.0]);
-    eye.pretty_output(&[0.8, 0.2, 0.2]);
+    eye.pretty_output(&[0.0, 0.0]);
+    eye.pretty_output(&[0.0, 1.0]);
+    eye.pretty_output(&[1.0, 0.0]);
+    eye.pretty_output(&[1.0, 1.0]);
 }
