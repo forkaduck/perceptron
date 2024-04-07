@@ -1,11 +1,12 @@
 use log::{debug, info};
 use rand::prelude::*;
 
+mod test;
 mod training_data;
 
 use crate::training_data::TrainingData;
 
-struct Layer {
+pub struct Layer {
     weights: Vec<f64>,
     threshold: f64,
 }
