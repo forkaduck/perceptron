@@ -23,7 +23,7 @@ mod tests {
     }
 
     #[test]
-    fn xor_torture() {
+    fn xor_impossibility_weak() {
         setup();
 
         let training_data = TrainingData::from(vec![
@@ -33,31 +33,44 @@ mod tests {
             (vec![1.0, 1.0], 0.0),
         ]);
 
-        {
-            let mut eye = Layer::new(training_data.len(), 0.5, false);
+        let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-            eye.train(&training_data, 0.1, 100, 0.1).unwrap();
+        eye.train(&training_data, 0.1, 10, 0.1).unwrap();
 
-            println!("-------------------------------------------\n");
-            assert_ask(&eye, &[0.0, 0.0], false);
-            assert_ask(&eye, &[0.0, 1.0], false);
-            assert_ask(&eye, &[1.0, 0.0], false);
-            assert_ask(&eye, &[1.0, 1.0], true);
-            info!("Weak learning done!");
-        }
+        assert_ask(&eye, &[0.0, 0.0], false);
+        assert_ask(&eye, &[0.0, 1.0], false);
+        assert_ask(&eye, &[1.0, 0.0], false);
+        assert_ask(&eye, &[1.0, 1.0], true);
+    }
 
-        // FIX Doesn't work because of oscillation of error.
-        {
-            let mut eye = Layer::new(training_data.len(), 0.5, false);
+    #[test]
+    fn normal() {
+        setup();
 
-            eye.train(&training_data, 0.2, 100, 0.01).unwrap();
+        let training_data = TrainingData::from(vec![
+            (vec![0.0, 0.0, 0.0], 0.0),
+            (vec![0.0, 0.7, 0.0], 1.0),
+            (vec![0.0, 0.8, 0.0], 1.0),
+            (vec![1.0, 0.0, 1.0], 0.0),
+            (vec![1.0, 0.6, 0.0], 1.0),
+            (vec![0.0, 0.7, 1.0], 1.0),
+            (vec![0.0, 0.0, 0.0], 0.0),
+            (vec![1.0, 0.0, 1.0], 0.0),
+            (vec![1.0, 1.0, 1.0], 1.0),
+        ]);
 
-            println!("-------------------------------------------\n");
-            assert_ask(&eye, &[0.0, 0.0], false);
-            assert_ask(&eye, &[0.0, 1.0], true);
-            assert_ask(&eye, &[1.0, 0.0], true);
-            assert_ask(&eye, &[1.0, 1.0], true);
-            info!("Strong learning done!");
-        }
+        let mut eye = Layer::new(training_data.len(), 0.5, false);
+
+        eye.train(&training_data, 0.1, 200, 0.01).unwrap();
+
+        info!("Without noise.");
+        assert_ask(&eye, &[0.0, 0.7, 0.0], true);
+        assert_ask(&eye, &[0.0, 0.5, 0.0], false);
+        assert_ask(&eye, &[0.0, 0.2, 0.0], false);
+
+        info!("With noise.");
+        assert_ask(&eye, &[0.8, 0.7, 0.3], true);
+        assert_ask(&eye, &[0.3, 0.5, 1.0], false);
+        assert_ask(&eye, &[0.8, 0.2, 0.2], false);
     }
 }

@@ -11,6 +11,7 @@ use crate::training_data::TrainingData;
 #[derive(Debug)]
 pub enum LayerError {
     OutOfIterations,
+    Oscillating,
 }
 
 pub struct Layer {
@@ -62,6 +63,10 @@ impl Layer {
         iterations: i32,
         err_margin: f64,
     ) -> Result<(), LayerError> {
+        let mut rised = false;
+        let mut falled = false;
+        let mut last_err_sum = 0.0;
+
         for i in 0..iterations {
             let mut err_sum = 0.0;
 
@@ -77,10 +82,26 @@ impl Layer {
                 }
             }
 
+            // Weird learning spiral???
+            if err_sum > last_err_sum {
+                rised = true;
+            }
+
+            if err_sum < last_err_sum {
+                falled = true;
+            }
+
+            if rised && falled {
+                return Err(LayerError::Oscillating);
+            }
+
+            // Normal exit (Nears err_margin)
             if err_sum < err_margin && err_sum > -err_margin {
                 debug!("Done learning!");
                 return Ok(());
             }
+
+            last_err_sum = err_sum;
         }
         Err(LayerError::OutOfIterations)
     }
@@ -97,20 +118,4 @@ fn main() {
         .without_timestamps()
         .init()
         .unwrap();
-
-    let training_data = TrainingData::from(vec![
-        (vec![0.0, 0.0], 0.0),
-        (vec![0.0, 1.0], 1.0),
-        (vec![1.0, 0.0], 1.0),
-        (vec![1.0, 1.0], 0.0),
-    ]);
-
-    let mut eye = Layer::new(training_data.len(), 0.5, false);
-
-    eye.train(&training_data, 0.1, 100, 0.1).unwrap();
-
-    eye.pretty_output(&[0.0, 0.0]);
-    eye.pretty_output(&[0.0, 1.0]);
-    eye.pretty_output(&[1.0, 0.0]);
-    eye.pretty_output(&[1.0, 1.0]);
 }
