@@ -1,10 +1,17 @@
 use log::{debug, info};
 use rand::prelude::*;
 
+use colored::Colorize;
+
 mod test;
 mod training_data;
 
 use crate::training_data::TrainingData;
+
+#[derive(Debug)]
+pub enum LayerError {
+    OutOfIterations,
+}
 
 pub struct Layer {
     weights: Vec<f64>,
@@ -39,7 +46,10 @@ impl Layer {
 
         for i in 0..input.len() {
             sum += self.weights[i] * input[i];
-            debug!("{} * {} =+ {}", self.weights[i], input[i], sum);
+            debug!(
+                "OUT: {:.4} * {:.4} =+ {:.4}",
+                self.weights[i], input[i], sum
+            );
         }
 
         (sum, sum > self.threshold)
@@ -51,13 +61,13 @@ impl Layer {
         learn_strength: f64,
         iterations: i32,
         err_margin: f64,
-    ) {
+    ) -> Result<(), LayerError> {
         for i in 0..iterations {
             let mut err_sum = 0.0;
 
             for k in 0..data.inner.len() {
                 let err = data.inner[k].output - self.output(&data.inner[k].input).0;
-                debug!("epoch:{} err:{}", i, err);
+                debug!("LRN: epoch: {} err: {:.4}\n", i, err.to_string().red());
 
                 err_sum += err;
 
@@ -67,12 +77,12 @@ impl Layer {
                 }
             }
 
-            debug!("---");
-
             if err_sum < err_margin && err_sum > -err_margin {
-                break;
+                debug!("Done learning!");
+                return Ok(());
             }
         }
+        Err(LayerError::OutOfIterations)
     }
 
     fn pretty_output(&self, input: &[f64]) {
@@ -97,7 +107,7 @@ fn main() {
 
     let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-    eye.train(&training_data, 0.1, 100, 0.1);
+    eye.train(&training_data, 0.1, 100, 0.1).unwrap();
 
     eye.pretty_output(&[0.0, 0.0]);
     eye.pretty_output(&[0.0, 1.0]);
