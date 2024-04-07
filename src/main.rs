@@ -33,7 +33,7 @@ impl Layer {
         temp
     }
 
-    fn output(&self, input: &[f64]) -> f64 {
+    fn output(&self, input: &[f64]) -> (f64, bool) {
         let mut sum: f64 = 0.0;
 
         for i in 0..input.len() {
@@ -41,11 +41,7 @@ impl Layer {
             debug!("{} * {} =+ {}", self.weights[i], input[i], sum);
         }
 
-        sum
-    }
-
-    fn decide(&self, sum: f64) -> bool {
-        sum > self.threshold
+        (sum, sum > self.threshold)
     }
 
     fn train(
@@ -59,7 +55,7 @@ impl Layer {
             let mut err_sum = 0.0;
 
             for k in 0..data.inner.len() {
-                let err = data.inner[k].output - self.output(&data.inner[k].input);
+                let err = data.inner[k].output - self.output(&data.inner[k].input).0;
                 debug!("epoch:{} err:{}", i, err);
 
                 err_sum += err;
@@ -80,7 +76,7 @@ impl Layer {
 
     fn pretty_output(&self, input: &[f64]) {
         let result = self.output(input);
-        info!("{:?} -> {:6} or {}", input, result, self.decide(result));
+        info!("{:?} -> {:6} or {}", input, result.0, result.1);
     }
 }
 
