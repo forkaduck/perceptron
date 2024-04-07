@@ -1,35 +1,18 @@
-use core::cmp;
 use log::{debug, info};
 use rand::prelude::*;
 
-struct TrainingData<'a> {
-    pub input: Vec<Vec<f64>>,
-    pub output: &'a [f64],
-}
+mod training_data;
 
-impl TrainingData<'_> {
-    pub fn new(input: Vec<Vec<f64>>, output: &[f64]) -> TrainingData {
-        assert!(input.len() == output.len());
-        TrainingData { input, output }
-    }
+use crate::training_data::TrainingData;
 
-    pub fn data_size(&self) -> usize {
-        cmp::min(self.input.len(), self.output.len())
-    }
-
-    pub fn input_length(&self) -> usize {
-        self.input[0].len()
-    }
-}
-
-struct Vision {
+struct Layer {
     weights: Vec<f64>,
     threshold: f64,
 }
 
-impl Vision {
-    fn new(size: usize, threshold: f64, random: bool) -> Vision {
-        let mut temp = Vision {
+impl Layer {
+    fn new(size: usize, threshold: f64, random: bool) -> Layer {
+        let mut temp = Layer {
             weights: vec![0.5; size],
             threshold,
         };
@@ -75,14 +58,14 @@ impl Vision {
         for i in 0..iterations {
             let mut err_sum = 0.0;
 
-            for k in 0..data.data_size() {
-                let err = data.output[k] - self.output(&data.input[k]);
+            for k in 0..data.inner.len() {
+                let err = data.inner[k].output - self.output(&data.inner[k].input);
                 debug!("epoch:{} err:{}", i, err);
 
                 err_sum += err;
 
-                for y in 0..(data.input_length() - 1) {
-                    let delta = learn_strength * data.input[k][y] * err as f64;
+                for y in 0..(data.len() - 1) {
+                    let delta = learn_strength * data.inner[k].input[y] * err as f64;
                     self.weights[y] += delta;
                 }
             }
@@ -108,17 +91,14 @@ fn main() {
         .init()
         .unwrap();
 
-    let training_data = TrainingData::new(
-        vec![
-            vec![0.0, 0.0],
-            vec![0.0, 1.0],
-            vec![1.0, 0.0],
-            vec![1.0, 1.0],
-        ],
-        &[0.0, 1.0, 1.0, 0.0],
-    );
+    let training_data = TrainingData::from(vec![
+        (vec![0.0, 0.0], 0.0),
+        (vec![0.0, 1.0], 1.0),
+        (vec![1.0, 0.0], 1.0),
+        (vec![1.0, 1.0], 0.0),
+    ]);
 
-    let mut eye = Vision::new(training_data.data_size(), 0.5, false);
+    let mut eye = Layer::new(training_data.len(), 0.5, false);
 
     eye.train(&training_data, 0.1, 100, 0.1);
 
