@@ -26,12 +26,13 @@ mod tests {
     fn xor_impossibility_weak() {
         setup();
 
-        let training_data = TrainingData::from(vec![
+        let training_data = TrainingData::try_from(vec![
             (vec![0.0, 0.0], 0.0),
             (vec![0.0, 1.0], 1.0),
             (vec![1.0, 0.0], 1.0),
             (vec![1.0, 1.0], 0.0),
-        ]);
+        ])
+        .unwrap();
 
         let mut eye = Layer::new(training_data.len(), 0.5, false);
 
@@ -47,7 +48,7 @@ mod tests {
     fn normal() {
         setup();
 
-        let training_data = TrainingData::from(vec![
+        let training_data = TrainingData::try_from(vec![
             (vec![0.0, 0.0, 0.0], 0.0),
             (vec![0.0, 0.7, 0.0], 1.0),
             (vec![0.0, 0.8, 0.0], 1.0),
@@ -57,7 +58,8 @@ mod tests {
             (vec![0.0, 0.0, 0.0], 0.0),
             (vec![1.0, 0.0, 1.0], 0.0),
             (vec![1.0, 1.0, 1.0], 1.0),
-        ]);
+        ])
+        .unwrap();
 
         let mut eye = Layer::new(training_data.len(), 0.5, false);
 

@@ -1,6 +1,6 @@
-use std::convert::From;
+use std::convert::TryFrom;
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct TrainingDataMember {
     pub input: Vec<f64>,
     pub output: f64,
@@ -19,15 +19,23 @@ impl TrainingData {
     }
 }
 
-impl From<Vec<(Vec<f64>, f64)>> for TrainingData {
-    fn from(value: Vec<(Vec<f64>, f64)>) -> Self {
+/// Implements a nicer form of instantiation for basic, handwritten data.
+impl TryFrom<Vec<(Vec<f64>, f64)>> for TrainingData {
+    type Error = ();
+
+    fn try_from(value: Vec<(Vec<f64>, f64)>) -> Result<Self, Self::Error> {
         let mut temp = TrainingData::default();
 
-        //TODO Fix later
         temp.length = match value.get(0) {
             Some(l) => l.0.len(),
-            None => return TrainingData::default(),
+            None => return Err(()),
         };
+
+        for i in &temp.inner {
+            if i.input.len() != temp.length {
+                return Err(());
+            }
+        }
 
         for i in value {
             temp.inner.push(TrainingDataMember {
@@ -36,6 +44,6 @@ impl From<Vec<(Vec<f64>, f64)>> for TrainingData {
             });
         }
 
-        temp
+        Ok(temp)
     }
 }
