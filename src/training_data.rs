@@ -31,12 +31,7 @@ impl TryFrom<Vec<(Vec<f64>, f64)>> for TrainingData {
             None => return Err(()),
         };
 
-        for i in &temp.inner {
-            if i.input.len() != temp.length {
-                return Err(());
-            }
-        }
-
+        // Copy all input values into the struct.
         for i in value {
             temp.inner.push(TrainingDataMember {
                 input: i.0,
