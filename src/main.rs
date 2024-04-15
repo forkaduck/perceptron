@@ -63,8 +63,8 @@ impl Layer {
         iterations: i32,
         err_margin: f64,
     ) -> Result<(), LayerError> {
-        let mut rised = false;
-        let mut falled = false;
+        let mut has_risen = false;
+        let mut has_fallen = false;
         let mut last_err_sum = 0.0;
 
         for i in 0..iterations {
@@ -84,14 +84,14 @@ impl Layer {
 
             // Weird learning spiral???
             if err_sum > last_err_sum {
-                rised = true;
+                has_risen = true;
             }
 
             if err_sum < last_err_sum {
-                falled = true;
+                has_fallen = true;
             }
 
-            if rised && falled {
+            if has_risen && has_fallen {
                 return Err(LayerError::Oscillating);
             }
 
