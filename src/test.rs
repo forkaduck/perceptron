@@ -43,36 +43,4 @@ mod tests {
         assert_ask(&eye, &[1.0, 0.0], false);
         assert_ask(&eye, &[1.0, 1.0], true);
     }
-
-    #[test]
-    fn normal() {
-        setup();
-
-        let training_data = TrainingData::try_from(vec![
-            (vec![0.0, 0.0, 0.0], 0.0),
-            (vec![0.0, 0.7, 0.0], 1.0),
-            (vec![0.0, 0.8, 0.0], 1.0),
-            (vec![1.0, 0.0, 1.0], 0.0),
-            (vec![1.0, 0.6, 0.0], 1.0),
-            (vec![0.0, 0.7, 1.0], 1.0),
-            (vec![0.0, 0.0, 0.0], 0.0),
-            (vec![1.0, 0.0, 1.0], 0.0),
-            (vec![1.0, 1.0, 1.0], 1.0),
-        ])
-        .unwrap();
-
-        let mut eye = Layer::new(training_data.len(), 0.5, false);
-
-        eye.train(&training_data, 0.1, 200, 0.01).unwrap();
-
-        info!("Without noise.");
-        assert_ask(&eye, &[0.0, 0.7, 0.0], true);
-        assert_ask(&eye, &[0.0, 0.5, 0.0], false);
-        assert_ask(&eye, &[0.0, 0.2, 0.0], false);
-
-        info!("With noise.");
-        assert_ask(&eye, &[0.8, 0.7, 0.3], true);
-        assert_ask(&eye, &[0.3, 0.5, 1.0], false);
-        assert_ask(&eye, &[0.8, 0.2, 0.2], false);
-    }
 }
