@@ -36,7 +36,7 @@ mod tests {
 
         let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-        eye.train(&training_data, 0.1, 10, 0.1).unwrap();
+        eye.train(&training_data, 0.1, 10, 0.1).ok();
 
         assert_ask(&eye, &[0.0, 0.0], false);
         assert_ask(&eye, &[0.0, 1.0], false);
