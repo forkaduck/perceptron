@@ -17,6 +17,11 @@ pub struct Layer {
 }
 
 impl Layer {
+    /// Instantiates a new Layer instance.
+    ///
+    /// * `size` - How many weights should be initialized.
+    /// * `threshold` - The value which decides when a returned value is true/false.
+    /// * `random` - An optional parameter to initialize the weights with random numbers.
     pub fn new(size: usize, threshold: f64, random: bool) -> Layer {
         let mut temp = Layer {
             weights: vec![0.5; size],
@@ -39,6 +44,9 @@ impl Layer {
         temp
     }
 
+    /// Calculates a "response" from the "learned" weights.
+    ///
+    /// * `input` - Input data to respond to.
     pub fn output(&self, input: &[f64]) -> (f64, bool) {
         let mut sum: f64 = 0.0;
 
@@ -49,6 +57,12 @@ impl Layer {
         (sum, sum > self.threshold)
     }
 
+    /// Changes the actual weights by the process of iterative learning.
+    ///
+    /// * `data` - The inputs and outputs the layer should be trained on.
+    /// * `learn_strength` - How much the weights change in respect to the learning data.
+    /// * `iterations` - How many times the training data should be applied.
+    /// * `err_max` - The amount of error considered acceptable.
     pub fn train(
         &mut self,
         data: &TrainingData,
@@ -92,6 +106,7 @@ impl Layer {
         Err(LayerError::OutOfIterations)
     }
 
+    /// Tries to find the optimal parameters to learn given material.
     pub fn train_optimizer(
         &mut self,
         data: &TrainingData,
