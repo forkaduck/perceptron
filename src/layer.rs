@@ -111,6 +111,7 @@ impl Layer {
         &mut self,
         data: &TrainingData,
         learn_range: Range<f64>,
+        err_max: f64,
     ) -> Result<(), LayerError> {
         let mut learn_strength: [f64; 2] = [learn_range.start, 0.0];
         let mut err_sum: [f64; 2] = [0.0, f64::MAX];
@@ -119,7 +120,7 @@ impl Layer {
             // Try training with the current learn_strength.
             debug!("Trying learn_strength: {:.6}", learn_strength[0]);
 
-            if let Err(e) = self.train(data, learn_strength[0], 50, 0.1) {
+            if let Err(e) = self.train(data, learn_strength[0], 50, err_max) {
                 debug!("Learning error: {:?}", e);
 
                 if learn_strength[0] >= learn_range.end {
@@ -143,7 +144,7 @@ impl Layer {
 
             if err_sum[0] > err_sum[1] {
                 info!("Found optimum at {:.6}", learn_strength[1]);
-                self.train(data, learn_strength[1], 50, 0.3)?;
+                self.train(data, learn_strength[1], 50, err_max)?;
                 break Ok(());
             }
 

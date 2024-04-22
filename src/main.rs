@@ -37,7 +37,8 @@ fn main() {
 
     let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-    eye.train_optimizer(&training_data, 0.005..0.3).unwrap();
+    eye.train_optimizer(&training_data, 0.005..0.3, 0.3)
+        .unwrap();
 
     info!("Without noise.");
     assert_ask(&eye, &[0.0, 0.7, 0.0], true);
