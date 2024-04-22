@@ -1,4 +1,4 @@
-use log::{debug, info, warn};
+use log::{debug, info};
 use rand::prelude::*;
 use std::ops::Range;
 
@@ -7,7 +7,6 @@ use colored::Colorize;
 
 #[derive(Debug)]
 pub enum LayerError {
-    OutOfIterations,
     ErrStabilized,
 }
 
@@ -67,12 +66,12 @@ impl Layer {
         &mut self,
         data: &TrainingData,
         learn_strength: f64,
-        iterations: i32,
         err_max: f64,
     ) -> Result<(), LayerError> {
         let mut err_sum: [f64; 2] = [0.0, f64::MAX];
+        let mut counter = 0;
 
-        for i in 0..iterations {
+        loop {
             err_sum[0] = 0.0;
 
             for k in 0..data.inner.len() {
@@ -86,7 +85,7 @@ impl Layer {
             }
             debug!(
                 "LRN: @ {} -> err_sum: {:.4}",
-                i,
+                counter,
                 err_sum[0].to_string().red(),
             );
 
@@ -102,8 +101,8 @@ impl Layer {
             }
 
             err_sum[1] = err_sum[0];
+            counter += 1;
         }
-        Err(LayerError::OutOfIterations)
     }
 
     /// Tries to find the optimal parameters to learn given material.
@@ -120,7 +119,7 @@ impl Layer {
             // Try training with the current learn_strength.
             debug!("Trying learn_strength: {:.6}", learn_strength[0]);
 
-            if let Err(e) = self.train(data, learn_strength[0], 50, err_max) {
+            if let Err(e) = self.train(data, learn_strength[0], err_max) {
                 debug!("Learning error: {:?}", e);
 
                 if learn_strength[0] >= learn_range.end {
@@ -144,7 +143,7 @@ impl Layer {
 
             if err_sum[0] > err_sum[1] {
                 info!("Found optimum at {:.6}", learn_strength[1]);
-                self.train(data, learn_strength[1], 50, err_max)?;
+                self.train(data, learn_strength[1], err_max)?;
                 break Ok(());
             }
 

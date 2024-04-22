@@ -38,7 +38,7 @@ mod tests {
 
         let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-        eye.train(&training_data, 0.1, 10, 0.1).ok();
+        eye.train(&training_data, 0.1, 0.1).ok();
 
         assert_show(&eye, &[0.0, 0.0], false);
         assert_show(&eye, &[0.0, 1.0], false);
@@ -69,7 +69,7 @@ mod tests {
 
         eye.train_optimizer(&training_data, 0.005..0.3, 0.3)
             .unwrap();
-        eye.train(&training_data, 0.055, 50, 0.3).unwrap();
+        eye.train(&training_data, 0.055, 0.3).unwrap();
 
         info!("Without noise.");
         assert_show(&eye, &[0.0, 0.7, 0.0], true);
@@ -101,7 +101,7 @@ mod tests {
 
         let mut eye = Layer::new(training_data.len(), 0.5, false);
 
-        eye.train(&training_data, 0.055, 50, 0.3).unwrap();
+        eye.train(&training_data, 0.055, 0.3).unwrap();
 
         info!("Without noise.");
         assert_show(&eye, &[0.0, 0.7, 0.0], false);
