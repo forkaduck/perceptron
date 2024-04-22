@@ -81,7 +81,7 @@ mod tests {
         assert_show(&eye, &[0.8, 0.2, 0.2], false);
     }
 
-    /// Shows the anti-prove of optimizer_complex_patterns.
+    /// Shows the anti-proof of optimizer_complex_patterns.
     #[test]
     fn optimizer_proof() {
         setup();
