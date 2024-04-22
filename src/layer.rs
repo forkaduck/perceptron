@@ -79,7 +79,7 @@ impl Layer {
                 err_sum[0] += err;
 
                 for y in 0..data.len() {
-                    let delta = learn_strength * data.inner[k].input[y] * err as f64;
+                    let delta = learn_strength * data.inner[k].input[y] * err;
                     self.weights[y] += delta;
                 }
             }
