@@ -1,14 +1,14 @@
 use rand::prelude::ThreadRng;
 use std::convert::TryFrom;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct TrainingDataMember {
     pub input: Vec<f64>,
     pub output: f64,
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct TrainingData {
     pub inner: Vec<TrainingDataMember>,
     length: usize,
