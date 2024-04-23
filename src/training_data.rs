@@ -1,3 +1,4 @@
+use rand::prelude::ThreadRng;
 use std::convert::TryFrom;
 
 #[derive(Default)]
@@ -16,6 +17,33 @@ pub struct TrainingData {
 impl TrainingData {
     pub fn len(&self) -> usize {
         self.length
+    }
+}
+
+impl TrainingData {
+    pub fn preset_fn_rng<F>(amount: usize, length: usize, input_f: F, output: f64) -> TrainingData
+    where
+        F: Fn(&mut ThreadRng) -> f64,
+    {
+        let mut rng = rand::thread_rng();
+
+        let mut rtval = TrainingData {
+            inner: Vec::with_capacity(amount),
+            length,
+        };
+
+        for _ in 0..amount {
+            let mut temp = Vec::with_capacity(length);
+
+            temp.resize(length, input_f(&mut rng));
+
+            rtval.inner.push(TrainingDataMember {
+                input: temp,
+                output,
+            });
+        }
+
+        rtval
     }
 }
 
