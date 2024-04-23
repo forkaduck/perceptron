@@ -132,7 +132,7 @@ impl Layer {
             for i in &data.inner {
                 let result = self.output(&i.input);
 
-                info!(
+                debug!(
                     "Output Test: {:?} -> {:.6} ?= {} | Bo: {} ",
                     &i.input, result.0, i.output, result.1
                 );
