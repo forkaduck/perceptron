@@ -112,7 +112,7 @@ impl Layer {
         learn_range: Range<f64>,
         err_max: f64,
     ) -> Result<(), LayerError> {
-        let mut learn_strength: [f64; 2] = [learn_range.start, 0.0];
+        let mut learn_strength: [f64; 2] = [learn_range.start, learn_range.end];
         let mut err_sum: [f64; 2] = [0.0, f64::MAX];
 
         loop {
@@ -147,8 +147,13 @@ impl Layer {
                 break Ok(());
             }
 
-            learn_strength[1] = learn_strength[0];
-            learn_strength[0] += learn_range.start;
+            // Add to learn strength by half of previous step.
+            {
+                let temp = learn_strength[0] + (learn_strength[1] - learn_strength[0]) / 2.0;
+
+                learn_strength[1] = learn_strength[0];
+                learn_strength[0] = temp;
+            }
 
             err_sum[1] = err_sum[0];
         }
