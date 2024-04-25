@@ -12,19 +12,19 @@ pub enum LayerError {
 
 pub struct Layer {
     weights: Vec<f64>,
-    threshold: f64,
 }
 
 impl Layer {
+    const THRESHOLD: f64 = 0.5;
+
     /// Instantiates a new Layer instance.
     ///
     /// * `size` - How many weights should be initialized.
     /// * `threshold` - The value which decides when a returned value is true/false.
     /// * `random` - An optional parameter to initialize the weights with random numbers.
-    pub fn new(size: usize, threshold: f64, random: bool) -> Layer {
+    pub fn new(size: usize, random: bool) -> Layer {
         let mut temp = Layer {
-            weights: vec![0.5; size],
-            threshold,
+            weights: vec![Self::THRESHOLD; size],
         };
 
         if random {
@@ -53,7 +53,7 @@ impl Layer {
             sum += self.weights[i] * input[i];
         }
 
-        (sum, sum > self.threshold)
+        (sum, sum > Self::THRESHOLD)
     }
 
     /// Changes the actual weights by the process of iterative learning.
