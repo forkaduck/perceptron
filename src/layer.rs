@@ -32,7 +32,7 @@ impl Layer {
 
             temp.weights.clear();
 
-            //initialize weights
+            // Initialize weights
             for _ in 0..size {
                 temp.weights.push(rng.gen::<f64>());
             }
@@ -106,6 +106,10 @@ impl Layer {
     }
 
     /// Tries to find the optimal parameters to learn given material.
+    ///
+    /// * `data` - The training data to optimize for.
+    /// * `learn_range` - A range of learn strengths in which the optimum should probably be.
+    /// * `err_max` - The maximum of error allowed without failing.
     pub fn train_optimizer(
         &mut self,
         data: &TrainingData,
