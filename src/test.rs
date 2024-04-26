@@ -140,4 +140,73 @@ mod tests {
 
         timer_end(start);
     }
+
+    /// Demonstrates that xor is actually learnable if multiple layers cooperate.
+    #[test]
+    fn multi_layer_xor() {
+        setup();
+        let start = Instant::now();
+
+        // Train the exclusive nodes first.
+        let first_data = [
+            TrainingData::try_from(vec![
+                (vec![0.0, 0.0], 0.0),
+                (vec![0.2, 0.0], 0.0),
+                (vec![0.5, 0.0], 1.0),
+                (vec![0.7, 0.0], 1.0),
+            ])
+            .unwrap(),
+            TrainingData::try_from(vec![
+                (vec![0.0, 0.0], 0.0),
+                (vec![0.0, 0.2], 0.0),
+                (vec![0.0, 0.5], 1.0),
+                (vec![0.0, 0.7], 1.0),
+            ])
+            .unwrap(),
+        ];
+
+        let first_layer = [
+            Layer::new(first_data[0].input_length(), false),
+            Layer::new(first_data[0].input_length(), false),
+        ];
+
+        for (index, mut i) in first_layer.clone().into_iter().enumerate() {
+            i.train_optimizer(&first_data[index], 0.055..0.3, 0.3)
+                .0
+                .unwrap();
+        }
+
+        // Train the or node.
+        let second_data = TrainingData::try_from(vec![
+            (vec![0.0, 0.0], 0.0),
+            (vec![1.0, 0.2], 1.0),
+            (vec![0.2, 1.0], 1.0),
+            (vec![1.0, 1.0], 1.0),
+        ])
+        .unwrap();
+
+        let mut second_layer = Layer::new(second_data.input_length(), false);
+
+        second_layer
+            .train_optimizer(&second_data, 0.055..0.3, 0.3)
+            .0
+            .unwrap();
+
+        let test_data = [
+            ([0.0, 0.0], 0.0),
+            ([0.0, 1.0], 1.0),
+            ([1.0, 0.0], 1.0),
+            ([0.0, 0.0], 0.0),
+        ];
+
+        for i in test_data {
+            let first_output = [first_layer[0].output(&i.0).0, first_layer[1].output(&i.0).0];
+
+            let result = second_layer.output(&first_output);
+            info!("{:?} -> {:.6} | {}", i, result.0, result.1);
+            assert_eq!(result.1, i.1 > 0.5);
+        }
+
+        timer_end(start);
+    }
 }
