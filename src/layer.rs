@@ -10,6 +10,7 @@ pub enum LayerError {
     ErrStabilized,
 }
 
+#[derive(Clone)]
 pub struct Layer {
     weights: Vec<f64>,
 }
