@@ -52,7 +52,7 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.len(), false);
+        let mut eye = Layer::new(training_data.input_length(), false);
 
         eye.train(&training_data, 0.1, 0.1).ok();
 
@@ -84,7 +84,7 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.len(), false);
+        let mut eye = Layer::new(training_data.input_length(), false);
 
         eye.train_optimizer(&training_data, 0.005..0.3, 0.3)
             .unwrap();
@@ -122,7 +122,7 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.len(), false);
+        let mut eye = Layer::new(training_data.input_length(), false);
 
         eye.train(&training_data, 0.055, 0.3).unwrap();
 

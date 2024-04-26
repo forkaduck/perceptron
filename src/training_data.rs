@@ -1,6 +1,12 @@
 use rand::prelude::ThreadRng;
 use std::convert::TryFrom;
 
+#[derive(Debug)]
+pub enum TrainingDataError {
+    EmptyData,
+    LengthMismatch(usize, usize),
+}
+
 #[derive(Default, Debug)]
 pub struct TrainingDataMember {
     pub input: Vec<f64>,
@@ -11,12 +17,12 @@ pub struct TrainingDataMember {
 #[derive(Default, Debug)]
 pub struct TrainingData {
     pub inner: Vec<TrainingDataMember>,
-    length: usize,
+    input_length: usize,
 }
 
 impl TrainingData {
-    pub fn len(&self) -> usize {
-        self.length
+    pub fn input_length(&self) -> usize {
+        self.input_length
     }
 }
 
@@ -37,18 +43,22 @@ impl TrainingData {
 
 /// Implements a nicer form of instantiation for basic, handwritten data.
 impl TryFrom<Vec<(Vec<f64>, f64)>> for TrainingData {
-    type Error = ();
+    type Error = TrainingDataError;
 
-    fn try_from(value: Vec<(Vec<f64>, f64)>) -> Result<Self, Self::Error> {
+    fn try_from(input_pretty: Vec<(Vec<f64>, f64)>) -> Result<Self, Self::Error> {
         let mut temp = TrainingData::default();
 
-        temp.length = match value.get(0) {
-            Some(l) => l.0.len(),
-            None => return Err(()),
+        temp.input_length = match input_pretty.get(0) {
+            Some(a) => a.0.len(),
+            None => return Err(TrainingDataError::EmptyData),
         };
 
         // Copy all input values into the struct.
-        for i in value {
+        for (index, i) in input_pretty.into_iter().enumerate() {
+            if i.0.len() != temp.input_length {
+                return Err(TrainingDataError::LengthMismatch(index, i.0.len()));
+            }
+
             temp.inner.push(TrainingDataMember {
                 input: i.0,
                 output: i.1,
