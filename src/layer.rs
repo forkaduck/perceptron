@@ -69,7 +69,7 @@ impl Layer {
         data: &TrainingData,
         learn_strength: f64,
         err_max: f64,
-    ) -> Result<(), LayerError> {
+    ) -> (Result<(), LayerError>, f64) {
         let mut err_sum: [f64; 2] = [0.0, f64::MAX];
         let mut counter = 0;
 
@@ -93,17 +93,17 @@ impl Layer {
 
             // Normal exit (err_sum is in range of err_margin)
             if err_sum[0].abs() < err_max {
-                return Ok(());
+                return (Ok(()), err_sum[0]);
             }
 
             // Detect if the err_sum is not in range of err_margin and
             // stopped shrinking.
             if (err_sum[0] * 100.0).round() == (err_sum[1] * 100.0).round() {
-                return Err(LayerError::ErrStabilized);
+                return (Err(LayerError::ErrStabilized), err_sum[0]);
             }
 
             if (err_sum[0] * 100.0).round() > (err_sum[1] * 100.0).round() {
-                return Err(LayerError::ErrRising);
+                return (Err(LayerError::ErrRising), err_sum[0]);
             }
 
             err_sum[1] = err_sum[0];
@@ -121,7 +121,7 @@ impl Layer {
         data: &TrainingData,
         learn_range: Range<f64>,
         err_max: f64,
-    ) -> Result<(), LayerError> {
+    ) -> (Result<(), LayerError>, f64) {
         // These variables are history arrays, containing the value
         // of the current iteration and the previous one.
         let mut learn_strength = [learn_range.start, learn_range.end];
@@ -136,37 +136,28 @@ impl Layer {
 
             let result = self.train(data, learn_strength[0], err_max);
 
-            if let Err(e) = result {
+            err_sum[0] = result.1;
+
+            if let Err(e) = result.0 {
                 debug!("Learning error: {:?}", e);
 
                 // Check if we run out of learn range.
                 if learn_strength[0] >= learn_range.end {
-                    return Err(e);
+                    return result;
                 }
             }
 
-            // Compare outputs of the layer with the training data.
-            err_sum[0] = 0.0;
-            for i in &data.inner {
-                let test = self.output(&i.input);
-
-                debug!(
-                    "Output Test: {:?} -> {:.6} ?= {} | Bo: {} ",
-                    &i.input, test.0, i.output, test.1
-                );
-
-                err_sum[0] += (test.0 - i.output).abs();
-            }
-            debug!("Test Err: {:.6}", err_sum[0].to_string().yellow());
-
             // If the net improved, train again and return a success.
-            if err_sum[0] > err_sum[1] {
+            if err_sum[0].abs() > err_sum[1].abs() {
                 info!(
                     "Found optimum at {:.6}",
                     learn_strength[1].to_string().green()
                 );
-                self.train(data, learn_strength[1], err_max)?;
-                break Ok(());
+
+                if let Err(e) = self.train(data, learn_strength[1], err_max).0 {
+                    return (Err(e), err_sum[0]);
+                }
+                return (Ok(()), err_sum[0]);
             }
 
             // Add to learn strength by half of previous step.

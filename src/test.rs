@@ -54,7 +54,7 @@ mod tests {
 
         let mut layer = Layer::new(training_data.input_length(), false);
 
-        layer.train(&training_data, 0.1, 0.1).ok();
+        layer.train(&training_data, 0.1, 0.1).0.ok();
 
         assert_show(&layer, &[0.0, 0.0], false);
         assert_show(&layer, &[0.0, 1.0], false);
@@ -88,8 +88,9 @@ mod tests {
 
         layer
             .train_optimizer(&training_data, 0.005..0.3, 0.3)
+            .0
             .unwrap();
-        layer.train(&training_data, 0.055, 0.3).unwrap();
+        layer.train(&training_data, 0.055, 0.3).0.unwrap();
 
         info!("Without noise.");
         assert_show(&layer, &[0.0, 0.7, 0.0], true);
@@ -125,7 +126,7 @@ mod tests {
 
         let mut layer = Layer::new(training_data.input_length(), false);
 
-        layer.train(&training_data, 0.055, 0.3).unwrap();
+        layer.train(&training_data, 0.055, 0.3).0.unwrap();
 
         info!("Without noise.");
         assert_show(&layer, &[0.0, 0.7, 0.0], false);
