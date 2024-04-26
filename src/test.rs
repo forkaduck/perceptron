@@ -52,14 +52,14 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), false);
 
-        eye.train(&training_data, 0.1, 0.1).ok();
+        layer.train(&training_data, 0.1, 0.1).ok();
 
-        assert_show(&eye, &[0.0, 0.0], false);
-        assert_show(&eye, &[0.0, 1.0], false);
-        assert_show(&eye, &[1.0, 0.0], false);
-        assert_show(&eye, &[1.0, 1.0], true);
+        assert_show(&layer, &[0.0, 0.0], false);
+        assert_show(&layer, &[0.0, 1.0], false);
+        assert_show(&layer, &[1.0, 0.0], false);
+        assert_show(&layer, &[1.0, 1.0], true);
 
         timer_end(start);
     }
@@ -84,21 +84,22 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), false);
 
-        eye.train_optimizer(&training_data, 0.005..0.3, 0.3)
+        layer
+            .train_optimizer(&training_data, 0.005..0.3, 0.3)
             .unwrap();
-        eye.train(&training_data, 0.055, 0.3).unwrap();
+        layer.train(&training_data, 0.055, 0.3).unwrap();
 
         info!("Without noise.");
-        assert_show(&eye, &[0.0, 0.7, 0.0], true);
-        assert_show(&eye, &[0.0, 0.5, 0.0], true);
-        assert_show(&eye, &[0.0, 0.2, 0.0], false);
+        assert_show(&layer, &[0.0, 0.7, 0.0], true);
+        assert_show(&layer, &[0.0, 0.5, 0.0], true);
+        assert_show(&layer, &[0.0, 0.2, 0.0], false);
 
         info!("With noise.");
-        assert_show(&eye, &[0.8, 0.7, 0.3], true);
-        assert_show(&eye, &[0.3, 0.5, 1.0], true);
-        assert_show(&eye, &[0.8, 0.2, 0.2], false);
+        assert_show(&layer, &[0.8, 0.7, 0.3], true);
+        assert_show(&layer, &[0.3, 0.5, 1.0], true);
+        assert_show(&layer, &[0.8, 0.2, 0.2], false);
 
         timer_end(start);
     }
@@ -122,19 +123,19 @@ mod tests {
         ])
         .unwrap();
 
-        let mut eye = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), false);
 
-        eye.train(&training_data, 0.055, 0.3).unwrap();
+        layer.train(&training_data, 0.055, 0.3).unwrap();
 
         info!("Without noise.");
-        assert_show(&eye, &[0.0, 0.7, 0.0], false);
-        assert_show(&eye, &[0.0, 0.5, 0.0], false);
-        assert_show(&eye, &[0.0, 0.2, 0.0], false);
+        assert_show(&layer, &[0.0, 0.7, 0.0], false);
+        assert_show(&layer, &[0.0, 0.5, 0.0], false);
+        assert_show(&layer, &[0.0, 0.2, 0.0], false);
 
         info!("With noise.");
-        assert_show(&eye, &[0.8, 0.7, 0.3], true);
-        assert_show(&eye, &[0.3, 0.5, 1.0], true);
-        assert_show(&eye, &[0.8, 0.2, 0.2], false);
+        assert_show(&layer, &[0.8, 0.7, 0.3], true);
+        assert_show(&layer, &[0.3, 0.5, 1.0], true);
+        assert_show(&layer, &[0.8, 0.2, 0.2], false);
 
         timer_end(start);
     }
