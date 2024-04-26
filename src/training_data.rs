@@ -21,29 +21,17 @@ impl TrainingData {
 }
 
 impl TrainingData {
-    pub fn preset_fn_rng<F>(amount: usize, length: usize, input_f: F, output: f64) -> TrainingData
+    pub fn add_input_fn<F>(&mut self, input_f: F)
     where
         F: Fn(&mut ThreadRng) -> f64,
     {
         let mut rng = rand::thread_rng();
 
-        let mut rtval = TrainingData {
-            inner: Vec::with_capacity(amount),
-            length,
-        };
-
-        for _ in 0..amount {
-            let mut temp = Vec::with_capacity(length);
-
-            temp.resize(length, input_f(&mut rng));
-
-            rtval.inner.push(TrainingDataMember {
-                input: temp,
-                output,
-            });
+        for i in &mut self.inner {
+            for k in &mut i.input {
+                *k += input_f(&mut rng);
+            }
         }
-
-        rtval
     }
 }
 
