@@ -5,9 +5,10 @@ use std::ops::Range;
 use crate::training_data::TrainingData;
 use colored::Colorize;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LayerError {
     ErrStabilized,
+    ErrRising,
 }
 
 #[derive(Clone)]
@@ -101,6 +102,10 @@ impl Layer {
                 return Err(LayerError::ErrStabilized);
             }
 
+            if (err_sum[0] * 100.0).round() > (err_sum[1] * 100.0).round() {
+                return Err(LayerError::ErrRising);
+            }
+
             err_sum[1] = err_sum[0];
             counter += 1;
         }
@@ -117,16 +122,24 @@ impl Layer {
         learn_range: Range<f64>,
         err_max: f64,
     ) -> Result<(), LayerError> {
-        let mut learn_strength: [f64; 2] = [learn_range.start, learn_range.end];
-        let mut err_sum: [f64; 2] = [0.0, f64::MAX];
+        // These variables are history arrays, containing the value
+        // of the current iteration and the previous one.
+        let mut learn_strength = [learn_range.start, learn_range.end];
+        let mut err_sum = [0.0, f64::MAX];
 
         loop {
             // Try training with the current learn_strength.
-            debug!("Trying learn_strength: {:.6}", learn_strength[0]);
+            debug!(
+                "Trying learn_strength: {:.6}",
+                learn_strength[0].to_string().bright_blue()
+            );
 
-            if let Err(e) = self.train(data, learn_strength[0], err_max) {
+            let result = self.train(data, learn_strength[0], err_max);
+
+            if let Err(e) = result {
                 debug!("Learning error: {:?}", e);
 
+                // Check if we run out of learn range.
                 if learn_strength[0] >= learn_range.end {
                     return Err(e);
                 }
@@ -135,31 +148,34 @@ impl Layer {
             // Compare outputs of the layer with the training data.
             err_sum[0] = 0.0;
             for i in &data.inner {
-                let result = self.output(&i.input);
+                let test = self.output(&i.input);
 
                 debug!(
                     "Output Test: {:?} -> {:.6} ?= {} | Bo: {} ",
-                    &i.input, result.0, i.output, result.1
+                    &i.input, test.0, i.output, test.1
                 );
 
-                err_sum[0] += (result.0 - i.output).abs();
+                err_sum[0] += (test.0 - i.output).abs();
             }
-            debug!("Err: {:.6} prev: {:.6}", err_sum[0], err_sum[1]);
+            debug!("Test Err: {:.6}", err_sum[0].to_string().yellow());
 
+            // If the net improved, train again and return a success.
             if err_sum[0] > err_sum[1] {
-                info!("Found optimum at {:.6}", learn_strength[1]);
+                info!(
+                    "Found optimum at {:.6}",
+                    learn_strength[1].to_string().green()
+                );
                 self.train(data, learn_strength[1], err_max)?;
                 break Ok(());
             }
 
             // Add to learn strength by half of previous step.
             {
-                let temp = learn_strength[0] + (learn_strength[1] - learn_strength[0]) / 2.0;
+                let learn_step = learn_strength[0] + (learn_strength[1] - learn_strength[0]) / 1.1;
 
                 learn_strength[1] = learn_strength[0];
-                learn_strength[0] = temp;
+                learn_strength[0] = learn_step;
             }
-
             err_sum[1] = err_sum[0];
         }
     }
