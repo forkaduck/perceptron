@@ -162,7 +162,7 @@ impl Layer {
 
             // Add to learn strength by half of previous step.
             {
-                let learn_step = learn_strength[0] + (learn_strength[1] - learn_strength[0]) / 1.1;
+                let learn_step = learn_strength[0] + (learn_strength[1] - learn_strength[0]) / 2.0;
 
                 learn_strength[1] = learn_strength[0];
                 learn_strength[0] = learn_step;
