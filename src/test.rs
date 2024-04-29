@@ -4,8 +4,8 @@ mod tests {
     use log::info;
     use std::time::Instant;
 
+    use crate::layer::Layer;
     use crate::training_data::TrainingData;
-    use crate::Layer;
 
     fn setup() {
         match simple_logger::SimpleLogger::new()
