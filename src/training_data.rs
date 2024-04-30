@@ -1,6 +1,8 @@
 use rand::prelude::ThreadRng;
 use std::convert::TryFrom;
 
+mod test;
+
 #[derive(Debug)]
 pub enum TrainingDataError {
     EmptyData,

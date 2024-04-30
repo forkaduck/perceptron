@@ -2,7 +2,7 @@ use log::warn;
 
 mod group;
 mod layer;
-mod test;
+mod test_helper;
 mod training_data;
 
 fn main() {

@@ -2,6 +2,8 @@ use log::{debug, info};
 use rand::prelude::*;
 use std::ops::Range;
 
+mod test;
+
 use crate::training_data::TrainingData;
 use colored::Colorize;
 
