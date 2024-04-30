@@ -3,20 +3,20 @@ use std::convert::TryFrom;
 
 mod test;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TrainingDataError {
     EmptyData,
     LengthMismatch(usize, usize),
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct TrainingDataMember {
     pub input: Vec<f64>,
     pub output: f64,
 }
 
 #[repr(C)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub struct TrainingData {
     pub inner: Vec<TrainingDataMember>,
     input_length: usize,
