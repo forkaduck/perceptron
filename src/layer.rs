@@ -101,7 +101,7 @@ impl Layer {
                 return (Err(LayerError::ErrStabilized), err_sum[0]);
             }
 
-            if (err_sum[0] * 100.0).round() > (err_sum[1] * 100.0).round() {
+            if (err_sum[0].abs() * 100.0).round() > (err_sum[1].abs() * 100.0).round() {
                 return (Err(LayerError::ErrRising), err_sum[0]);
             }
 
