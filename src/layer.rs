@@ -13,7 +13,7 @@ pub enum LayerError {
     ErrRising,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Layer {
     weights: Vec<f64>,
 }
@@ -41,9 +41,6 @@ impl Layer {
                 temp.weights.push(rng.gen::<f64>());
             }
         }
-
-        info!("Random Weights: {:?}", temp.weights);
-
         temp
     }
 
