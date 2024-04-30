@@ -5,6 +5,7 @@ use std::time::Instant;
 
 use crate::layer::Layer;
 
+/// Sets up logging when its called at the start of a test.
 pub fn setup() {
     match simple_logger::SimpleLogger::new()
         .env()
@@ -19,7 +20,7 @@ pub fn setup() {
     println!("");
 }
 
-// Helper-function which outputs and checks the layer output.
+/// Helper-function which outputs and checks the layer output.
 pub fn assert_show(data: &Layer, input: &[f64], rv: bool) {
     let result = data.output(input);
     info!("{:?} -> {:.6} | {}", input, result.0, result.1);
@@ -27,7 +28,7 @@ pub fn assert_show(data: &Layer, input: &[f64], rv: bool) {
     assert_eq!(data.output(input).1, rv);
 }
 
-// Helper-function for easier timing because --report-time is to inaccurate (and unstable).
+/// Helper-function for easier timing because --report-time is to inaccurate (and unstable).
 pub fn timer_end(start: Instant) {
     println!(
         "Time elapsed: {}s",

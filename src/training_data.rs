@@ -29,6 +29,11 @@ impl TrainingData {
 }
 
 impl TrainingData {
+    /// Adds the result of the function passed as an argument
+    /// to all training data input.
+    ///
+    /// * `input_f` - The input function to add. (Optionally there's a random number generator
+    /// available to add, for example, noise.)
     pub fn add_input_fn<F>(&mut self, input_f: F)
     where
         F: Fn(&mut ThreadRng) -> f64,
