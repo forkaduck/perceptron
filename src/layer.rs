@@ -1,5 +1,6 @@
 use log::{debug, info};
 use rand::prelude::*;
+use std::boxed::Box;
 use std::ops::Range;
 
 mod test;
@@ -7,10 +8,11 @@ mod test;
 use crate::training_data::TrainingData;
 use colored::Colorize;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LayerError {
     ErrStabilized,
     ErrRising,
+    OutOfLearnRange(Box<LayerError>),
 }
 
 #[derive(Debug, Clone)]
@@ -141,9 +143,12 @@ impl Layer {
                 debug!("Learning error: {:?}", e);
 
                 // Check if we run out of learn range.
-                if learn_strength[0] >= learn_range.end {
-                    return result;
-                }
+                // Not possible with the current learn_strength curve.
+                // Just here in the case that changes.
+                //
+                // if learn_strength[0] >= learn_range.end {
+                // return (Err(LayerError::OutOfLearnRange(Box::new(e))), 0.0);
+                // }
             }
 
             // If the net improved, train again and return a success.
