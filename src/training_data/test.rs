@@ -13,15 +13,21 @@ mod training_data_tests {
         ])
         .unwrap();
 
+        let data = TrainingData::try_from(vec![]);
+        assert_eq!(data, Err(TrainingDataError::EmptyData));
+
+        let data = TrainingData::try_from(vec![(vec![], 0.0)]);
+        assert_eq!(data, Err(TrainingDataError::EmptyData));
+
         // Test one entry containing more elements than the rest.
-        let training_data = TrainingData::try_from(vec![
+        let data = TrainingData::try_from(vec![
             (vec![0.0, 0.0], 0.0),
             (vec![0.0, 1.0, 1.0], 1.0),
             (vec![1.0, 0.0], 1.0),
             (vec![1.0, 1.0], 0.0),
         ]);
 
-        assert_eq!(training_data, Err(TrainingDataError::LengthMismatch(1, 3)));
+        assert_eq!(data, Err(TrainingDataError::LengthMismatch(1, 3)));
     }
 
     #[test]

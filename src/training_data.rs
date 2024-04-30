@@ -56,7 +56,12 @@ impl TryFrom<Vec<(Vec<f64>, f64)>> for TrainingData {
         let mut temp = TrainingData::default();
 
         temp.input_length = match input_pretty.get(0) {
-            Some(a) => a.0.len(),
+            Some(a) => {
+                if a.0.len() == 0 {
+                    return Err(TrainingDataError::EmptyData);
+                }
+                a.0.len()
+            }
             None => return Err(TrainingDataError::EmptyData),
         };
 
