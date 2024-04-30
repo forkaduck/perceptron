@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use colored::Colorize;
 use log::info;
 use std::time::Instant;
