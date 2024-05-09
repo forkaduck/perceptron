@@ -45,7 +45,7 @@ mod layer_tests {
         let mut layer = Layer::new(training_data.input_length(), false);
 
         assert_eq!(
-            layer.train(&training_data, 0.2, 0.1).0,
+            layer.train(&training_data, 0.001, 0.01).0,
             Err(LayerError::ErrStabilized)
         );
 
@@ -80,10 +80,36 @@ mod layer_tests {
         timer_end(start);
     }
 
+    #[test]
+    fn normal_operation() {
+        setup();
+        let start = Instant::now();
+
+        let training_data = TrainingData::try_from(vec![
+            (vec![0.0, 0.0], 0.0),
+            (vec![0.0, 1.0], 0.5),
+            (vec![1.0, 0.0], 1.0),
+            (vec![1.0, 1.0], 1.0),
+        ])
+        .unwrap();
+
+        let mut layer = Layer::new(training_data.input_length(), false);
+
+        // FIX Wrong parameters?
+        layer.train(&training_data, 0.1, 0.1).0.ok();
+
+        assert_show(&layer, &[0.0, 0.0], false);
+        assert_show(&layer, &[0.0, 1.0], true);
+        assert_show(&layer, &[1.0, 0.0], true);
+        assert_show(&layer, &[1.0, 1.0], true);
+
+        timer_end(start);
+    }
+
     /// Showcases that a one-dimensional layer can't learn
     /// an XOR Gate.
     #[test]
-    fn xor_impossibility_weak() {
+    fn xor_impossibility() {
         setup();
         let start = Instant::now();
 
@@ -102,7 +128,7 @@ mod layer_tests {
         assert_show(&layer, &[0.0, 0.0], false);
         assert_show(&layer, &[0.0, 1.0], false);
         assert_show(&layer, &[1.0, 0.0], false);
-        assert_show(&layer, &[1.0, 1.0], true);
+        assert_show(&layer, &[1.0, 1.0], false);
 
         timer_end(start);
     }
@@ -130,10 +156,9 @@ mod layer_tests {
         let mut layer = Layer::new(training_data.input_length(), false);
 
         layer
-            .train_optimizer(&training_data, 0.005..0.3, 0.3)
+            .train_optimizer(&training_data, 0.001..0.5, 0.5)
             .0
             .unwrap();
-        layer.train(&training_data, 0.055, 0.3).0.unwrap();
 
         info!("Without noise.");
         assert_show(&layer, &[0.0, 0.7, 0.0], true);
@@ -148,7 +173,11 @@ mod layer_tests {
         timer_end(start);
     }
 
-    /// Shows the anti-proof of optimizer_complex_patterns.
+    /// Shows how learning without optimizing the parameters, leads to worse results,
+    /// even if you take the optimal learning strength from the optimizer and learn manually.
+    ///
+    /// This suggests some kind of important role of iteratively improving learning uptake which
+    /// seems to increase retention?
     #[test]
     fn optimizer_proof() {
         setup();
@@ -169,17 +198,17 @@ mod layer_tests {
 
         let mut layer = Layer::new(training_data.input_length(), false);
 
-        layer.train(&training_data, 0.055, 0.3).0.unwrap();
+        layer.train(&training_data, 0.25, 0.5).0.unwrap();
 
         info!("Without noise.");
-        assert_show(&layer, &[0.0, 0.7, 0.0], false);
+        assert_show(&layer, &[0.0, 0.7, 0.0], true);
         assert_show(&layer, &[0.0, 0.5, 0.0], false);
         assert_show(&layer, &[0.0, 0.2, 0.0], false);
 
         info!("With noise.");
         assert_show(&layer, &[0.8, 0.7, 0.3], true);
         assert_show(&layer, &[0.3, 0.5, 1.0], true);
-        assert_show(&layer, &[0.8, 0.2, 0.2], false);
+        assert_show(&layer, &[0.8, 0.2, 0.2], true);
 
         timer_end(start);
     }

@@ -78,7 +78,11 @@ impl Layer {
             err_sum[0] = 0.0;
 
             for k in 0..data.inner.len() {
-                let err = data.inner[k].output - self.output(&data.inner[k].input).0;
+                // Calculate the result of the activation function.
+                // Is a logistics function with a basis of 2 to be more efficient.
+                let activation_result = 1.0 / (1.0 + (-self.output(&data.inner[k].input).0).exp2());
+
+                let err = data.inner[k].output - activation_result;
                 err_sum[0] += err;
 
                 for y in 0..data.input_length() {
@@ -87,9 +91,9 @@ impl Layer {
                 }
             }
             debug!(
-                "LRN: @ {} -> err_sum: {:.4}",
+                "LRN: @ {} -> err_sum: {}",
                 counter,
-                err_sum[0].to_string().red(),
+                format!("{:.4}", err_sum[0]).to_string().red(),
             );
 
             // Normal exit (err_sum is in range of err_margin)
@@ -131,8 +135,10 @@ impl Layer {
         loop {
             // Try training with the current learn_strength.
             debug!(
-                "Trying learn_strength: {:.6}",
-                learn_strength[0].to_string().bright_blue()
+                "Trying learn_strength: {}",
+                format!("{:.6}", learn_strength[0])
+                    .to_string()
+                    .bright_blue()
             );
 
             let result = self.train(data, learn_strength[0], err_max);
@@ -154,8 +160,8 @@ impl Layer {
             // If the net improved, train again and return a success.
             if err_sum[0].abs() > err_sum[1].abs() {
                 info!(
-                    "Found optimum at {:.6}",
-                    learn_strength[1].to_string().green()
+                    "Found optimum at {}",
+                    format!("{:.6}", learn_strength[1]).to_string().green()
                 );
 
                 if let Err(e) = self.train(data, learn_strength[1], err_max).0 {
