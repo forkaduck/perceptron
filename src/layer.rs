@@ -15,6 +15,12 @@ pub enum LayerError {
     OutOfLearnRange(Box<LayerError>),
 }
 
+pub enum LayerInit {
+    None,
+    Random,
+    Seed(u64),
+}
+
 #[derive(Debug, Clone)]
 pub struct Layer {
     weights: Vec<f64>,
@@ -28,21 +34,34 @@ impl Layer {
     /// * `size` - How many weights should be initialized.
     /// * `threshold` - The value which decides when a returned value is true/false.
     /// * `random` - An optional parameter to initialize the weights with random numbers.
-    pub fn new(size: usize, random: bool) -> Layer {
+    pub fn new(size: usize, random: LayerInit) -> Layer {
         let mut temp = Layer {
             weights: vec![Self::THRESHOLD; size],
         };
 
-        if random {
-            let mut rng = rand::thread_rng();
+        match random {
+            LayerInit::None => {}
+            LayerInit::Random => {
+                let mut rng = rand::thread_rng();
 
-            temp.weights.clear();
+                temp.weights.clear();
 
-            // Initialize weights
-            for _ in 0..size {
-                temp.weights.push(rng.gen::<f64>());
+                // Initialize weights
+                for _ in 0..size {
+                    temp.weights.push(rng.gen::<f64>());
+                }
+            }
+            LayerInit::Seed(a) => {
+                let mut rng = rand::rngs::StdRng::seed_from_u64(a);
+
+                temp.weights.clear();
+
+                for _ in 0..size {
+                    temp.weights.push(rng.gen::<f64>());
+                }
             }
         }
+
         temp
     }
 

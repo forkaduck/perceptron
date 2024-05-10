@@ -3,14 +3,14 @@ mod layer_tests {
     use log::info;
     use std::time::Instant;
 
-    use crate::layer::{Layer, LayerError};
+    use crate::layer::{Layer, LayerError, LayerInit};
     use crate::test_helper::*;
     use crate::training_data::TrainingData;
 
     /// Test that random weights initialization works.
     #[test]
     fn random_init() {
-        let layer = Layer::new(4, true);
+        let layer = Layer::new(4, LayerInit::None);
 
         let mut iter = layer.weights.iter().peekable();
 
@@ -42,7 +42,7 @@ mod layer_tests {
             (vec![1.0, 1.0, 0.0], 1.0),
         ])
         .unwrap();
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         assert_eq!(
             layer.train(&training_data, 0.001, 0.01).0,
@@ -70,7 +70,7 @@ mod layer_tests {
             (vec![1.0, 1.0, 1.0], 1.0),
         ])
         .unwrap();
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         assert_eq!(
             layer.train_optimizer(&training_data, 1.0..2.0, 0.1).0,
@@ -93,7 +93,7 @@ mod layer_tests {
         ])
         .unwrap();
 
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         // FIX Wrong parameters?
         layer.train(&training_data, 0.1, 0.1).0.ok();
@@ -121,7 +121,7 @@ mod layer_tests {
         ])
         .unwrap();
 
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         layer.train(&training_data, 0.1, 0.1).0.ok();
 
@@ -153,7 +153,7 @@ mod layer_tests {
         ])
         .unwrap();
 
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         layer
             .train_optimizer(&training_data, 0.001..0.5, 0.5)
@@ -196,7 +196,7 @@ mod layer_tests {
         ])
         .unwrap();
 
-        let mut layer = Layer::new(training_data.input_length(), false);
+        let mut layer = Layer::new(training_data.input_length(), LayerInit::None);
 
         layer.train(&training_data, 0.25, 0.5).0.unwrap();
 
@@ -220,8 +220,11 @@ mod layer_tests {
         let start = Instant::now();
 
         let mut network = vec![
-            vec![Layer::new(2, false), Layer::new(2, false)],
-            vec![Layer::new(2, false)],
+            vec![
+                Layer::new(2, LayerInit::None),
+                Layer::new(2, LayerInit::None),
+            ],
+            vec![Layer::new(2, LayerInit::None)],
         ];
 
         // Train the exclusive nodes first.
