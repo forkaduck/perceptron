@@ -212,4 +212,72 @@ mod layer_tests {
 
         timer_end(start);
     }
+
+    // Demonstrates that xor is actually learn-able by multiple layers cooperating.
+    #[test]
+    fn xor_multilayer() {
+        setup();
+        let start = Instant::now();
+
+        let mut network = vec![
+            vec![Layer::new(2, false), Layer::new(2, false)],
+            vec![Layer::new(2, false)],
+        ];
+
+        // Train the exclusive nodes first.
+        let first_data = [
+            TrainingData::try_from(vec![
+                (vec![0.0, 0.0], 0.0),
+                (vec![0.2, 0.0], 0.0),
+                (vec![0.5, 0.0], 1.0),
+                (vec![0.7, 0.0], 1.0),
+            ])
+            .unwrap(),
+            TrainingData::try_from(vec![
+                (vec![0.0, 0.0], 0.0),
+                (vec![0.0, 0.2], 0.0),
+                (vec![0.0, 0.5], 1.0),
+                (vec![0.0, 0.7], 1.0),
+            ])
+            .unwrap(),
+        ];
+
+        for (index, i) in network[0].iter_mut().enumerate() {
+            i.train_optimizer(&first_data[index], 0.055..0.3, 0.3)
+                .0
+                .unwrap();
+        }
+
+        // Train the or node.
+        let second_data = TrainingData::try_from(vec![
+            (vec![0.0, 0.0], 0.0),
+            (vec![1.0, 0.2], 1.0),
+            (vec![0.2, 1.0], 1.0),
+            (vec![1.0, 1.0], 1.0),
+        ])
+        .unwrap();
+
+        network[1][0]
+            .train_optimizer(&second_data, 0.055..0.3, 0.3)
+            .0
+            .unwrap();
+
+        let test_data = [
+            (vec![0.0, 0.0], 0.0),
+            (vec![0.0, 1.0], 1.0),
+            (vec![1.0, 0.0], 1.0),
+            (vec![0.0, 0.0], 0.0),
+        ];
+
+        for i in test_data {
+            let outputs = [network[0][0].output(&i.0).0, network[0][1].output(&i.0).0];
+
+            let result = network[1][0].output(&outputs);
+
+            info!("{:?} -> {:.6}", i, result.0);
+            assert_eq!(result.1, i.1 > 0.5);
+        }
+
+        timer_end(start);
+    }
 }
