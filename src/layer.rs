@@ -15,10 +15,9 @@ pub enum LayerError {
     OutOfLearnRange(Box<LayerError>),
 }
 
-pub enum LayerInit {
+pub enum LayerInit<'a> {
     None,
-    Random,
-    Seed(u64),
+    Seed(&'a mut StdRng),
 }
 
 #[derive(Debug, Clone)]
@@ -41,19 +40,7 @@ impl Layer {
 
         match random {
             LayerInit::None => {}
-            LayerInit::Random => {
-                let mut rng = rand::thread_rng();
-
-                temp.weights.clear();
-
-                // Initialize weights
-                for _ in 0..size {
-                    temp.weights.push(rng.gen::<f64>());
-                }
-            }
-            LayerInit::Seed(a) => {
-                let mut rng = rand::rngs::StdRng::seed_from_u64(a);
-
+            LayerInit::Seed(rng) => {
                 temp.weights.clear();
 
                 for _ in 0..size {
