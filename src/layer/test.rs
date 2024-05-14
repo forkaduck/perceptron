@@ -310,10 +310,13 @@ mod layer_tests {
         fn print_group(net: &Vec<Vec<Layer>>) {
             for i in 0..net.len() {
                 for k in 0..net[i].len() {
-                    info!(
-                        "Gr:{} {:.2} {:.2}",
-                        i, net[i][k].weights[0], net[i][k].weights[1]
-                    );
+                    let mut temp = String::new();
+
+                    for w in &net[i][k].weights {
+                        temp += &format!("{:.2} ", w);
+                    }
+
+                    info!("Gr:{} {}", i, temp);
                 }
             }
         }
