@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod layer_tests {
-    use log::info;
+    use log::{debug, info};
     use std::time::Instant;
 
     use crate::layer::{Layer, LayerError, LayerInit};
@@ -307,6 +307,17 @@ mod layer_tests {
             (vec![0.0, 0.0], 0.0),
         ];
 
+        fn print_group(net: &Vec<Vec<Layer>>) {
+            for i in 0..net.len() {
+                for k in 0..net[i].len() {
+                    info!(
+                        "Gr:{} {:.2} {:.2}",
+                        i, net[i][k].weights[0], net[i][k].weights[1]
+                    );
+                }
+            }
+        }
+
         // Normal improvement.
         // let mut first_rng = rand::rngs::StdRng::seed_from_u64(3000000);
         // let mut second_rng = rand::rngs::StdRng::seed_from_u64(10);
@@ -340,7 +351,9 @@ mod layer_tests {
             vec![Layer::new(WEIGHTS, LayerInit::Seed(&mut second_rng))],
         ];
 
-        for _ in 0..2 {
+        print_group(&second);
+
+        for _ in 0..3 {
             let mut first_err = 0.0;
             let mut second_err = 0.0;
 
@@ -368,6 +381,8 @@ mod layer_tests {
             for i in 0..first.len() {
                 for k in 0..first[i].len() {
                     for w in 0..WEIGHTS {
+                        const OFFSET: f64 = 0.5;
+
                         let mut better = &mut first[i][k].weights[w];
                         let mut worse = &mut second[i][k].weights[w];
 
@@ -384,26 +399,26 @@ mod layer_tests {
 
                         // Work backwards to get the x coordinate on the linear function.
                         // Then add an offset to strengthen or weaken the pattern.
-                        let point_last = *worse / gradient + 0.1;
+                        let point_last = *worse / gradient + OFFSET;
 
                         // Insert the newly adjusted point back into the linear function.
                         let weight_diff = point_last * gradient;
 
-                        info!(
+                        debug!(
                             "maximum:{:.2} gradient:{:.2} wΔ:{}",
                             maximum,
                             gradient,
                             format!("{:.2}", weight_diff).green()
                         );
 
-                        info!(
+                        debug!(
                             "({}, {}, {}) -> better/worse: {:.2}/{:.2}",
                             i, k, w, better, worse
                         );
 
-                        *worse += weight_diff;
+                        *worse = 1.0 / (OFFSET + (-*worse * weight_diff).exp2());
 
-                        info!(
+                        debug!(
                             "({}, {}, {}) -> better/worse: {:.2}/{:.2}\n",
                             i, k, w, better, worse
                         );
@@ -411,6 +426,8 @@ mod layer_tests {
                 }
             }
         }
+
+        print_group(&second);
         timer_end(start);
     }
 }
