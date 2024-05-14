@@ -213,7 +213,7 @@ mod layer_tests {
         timer_end(start);
     }
 
-    // Demonstrates that xor is actually learn-able by multiple layers cooperating.
+    /// Demonstrates that xor is actually learn-able by multiple layers cooperating.
     #[test]
     fn xor_multilayer() {
         setup();
@@ -281,6 +281,136 @@ mod layer_tests {
             assert_eq!(result.1, i.1 > 0.5);
         }
 
+        timer_end(start);
+    }
+
+    /// Tests a new (to me) learning technique, where two networks are randomly
+    /// initialized and then the internal pattern of the weights is reinforced based
+    /// on output error.
+    ///
+    /// By keeping the relative weight differences the same, the learned pattern doesn't change
+    /// but instead can be reinforced or weakened.
+    #[test]
+    fn multi_competitive() {
+        use colored::Colorize;
+        use rand::prelude::*;
+
+        setup();
+        let start = Instant::now();
+
+        const WEIGHTS: usize = 2;
+
+        let test_data = [
+            (vec![0.0, 0.0], 0.0),
+            (vec![0.0, 1.0], 1.0),
+            (vec![1.0, 0.0], 1.0),
+            (vec![0.0, 0.0], 0.0),
+        ];
+
+        // Normal improvement.
+        // let mut first_rng = rand::rngs::StdRng::seed_from_u64(3000000);
+        // let mut second_rng = rand::rngs::StdRng::seed_from_u64(10);
+
+        // Large improvement.
+        // let mut first_rng = rand::rngs::StdRng::seed_from_u64(3234);
+        // let mut second_rng = rand::rngs::StdRng::seed_from_u64(203874);
+
+        // Weird fluctuations.
+        // let mut first_rng = rand::rngs::StdRng::seed_from_u64(323239044);
+        // let mut second_rng = rand::rngs::StdRng::seed_from_u64(203872934);
+
+        // Completely random weights.
+        let mut first_rng = rand::rngs::StdRng::from_entropy();
+        let mut second_rng = rand::rngs::StdRng::from_entropy();
+
+        // Implement two almost identical networks, which only differ in their initial weights.
+        let mut first = vec![
+            vec![
+                Layer::new(WEIGHTS, LayerInit::Seed(&mut first_rng)),
+                Layer::new(WEIGHTS, LayerInit::Seed(&mut first_rng)),
+            ],
+            vec![Layer::new(WEIGHTS, LayerInit::Seed(&mut first_rng))],
+        ];
+
+        let mut second = vec![
+            vec![
+                Layer::new(WEIGHTS, LayerInit::Seed(&mut second_rng)),
+                Layer::new(WEIGHTS, LayerInit::Seed(&mut second_rng)),
+            ],
+            vec![Layer::new(WEIGHTS, LayerInit::Seed(&mut second_rng))],
+        ];
+
+        for _ in 0..2 {
+            let mut first_err = 0.0;
+            let mut second_err = 0.0;
+
+            // Get the output from both and check which one is closer.
+            for i in &test_data {
+                let res_first =
+                    first[1][0].output(&[first[0][0].output(&i.0).0, first[0][1].output(&i.0).0]);
+
+                let res_second = second[1][0]
+                    .output(&[second[0][0].output(&i.0).0, second[0][1].output(&i.0).0]);
+
+                first_err += i.1 - res_first.0;
+                second_err += i.1 - res_second.0;
+
+                info!(
+                    "{:?} -> {:.2} | {:.2} + {} {}",
+                    i,
+                    res_first.0,
+                    res_second.0,
+                    format!("{:.2}", first_err).red(),
+                    format!("{:.2}", second_err).red()
+                );
+            }
+
+            for i in 0..first.len() {
+                for k in 0..first[i].len() {
+                    for w in 0..WEIGHTS {
+                        let mut better = &mut first[i][k].weights[w];
+                        let mut worse = &mut second[i][k].weights[w];
+
+                        if first_err > second_err {
+                            better = &mut second[i][k].weights[w];
+                            worse = &mut first[i][k].weights[w];
+                        };
+
+                        // Get the bigger of the two, better or worse.
+                        let maximum = better.max(*worse);
+
+                        // Calculate a relative gradient based on the maximum.
+                        let gradient = (*better - *worse) / maximum;
+
+                        // Work backwards to get the x coordinate on the linear function.
+                        // Then add an offset to strengthen or weaken the pattern.
+                        let point_last = *worse / gradient + 0.1;
+
+                        // Insert the newly adjusted point back into the linear function.
+                        let weight_diff = point_last * gradient;
+
+                        info!(
+                            "maximum:{:.2} gradient:{:.2} wΔ:{}",
+                            maximum,
+                            gradient,
+                            format!("{:.2}", weight_diff).green()
+                        );
+
+                        info!(
+                            "({}, {}, {}) -> better/worse: {:.2}/{:.2}",
+                            i, k, w, better, worse
+                        );
+
+                        *worse += weight_diff;
+
+                        info!(
+                            "({}, {}, {}) -> better/worse: {:.2}/{:.2}\n",
+                            i, k, w, better, worse
+                        );
+                    }
+                }
+            }
+        }
         timer_end(start);
     }
 }
