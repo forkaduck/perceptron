@@ -10,7 +10,7 @@ mod layer_tests {
     /// Test that random weights initialization works.
     #[test]
     fn random_init() {
-        let layer = Layer::new(4, LayerInit::None);
+        let layer = Layer::new(4, LayerInit::Random);
 
         let mut iter = layer.weights.iter().peekable();
 
