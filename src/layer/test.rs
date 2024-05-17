@@ -292,6 +292,7 @@ mod layer_tests {
     /// but instead can be reinforced or weakened.
     #[test]
     fn multi_competitive() {
+        use crate::vec_additions::ExtendedStatistics;
         use colored::Colorize;
         use rand::prelude::*;
 
@@ -301,10 +302,10 @@ mod layer_tests {
         const WEIGHTS: usize = 2;
 
         let test_data = [
-            (vec![0.0, 0.0, 0.0, 0.0], 0.0),
-            (vec![0.0, 1.0, 0.0, 1.0], 1.0),
-            (vec![1.0, 0.0, 1.0, 0.0], 1.0),
-            (vec![0.0, 0.0, 0.0, 0.0], 0.0),
+            (vec![0.0, 0.0].dup(2), 0.0),
+            (vec![0.0, 1.0].dup(2), 1.0),
+            (vec![1.0, 0.0].dup(2), 1.0),
+            (vec![0.0, 0.0].dup(2), 0.0),
         ];
 
         fn print_group(net: &Vec<Vec<Layer>>) {
