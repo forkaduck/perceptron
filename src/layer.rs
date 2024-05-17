@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::{debug, info, warn};
 use rand::prelude::*;
 use std::boxed::Box;
 use std::ops::Range;
@@ -13,6 +13,7 @@ pub enum LayerError {
     ErrStabilized,
     ErrRising,
     OutOfLearnRange(Box<LayerError>),
+    LearnStrengthOutOfPrecision,
 }
 
 #[derive(Clone, Copy)]
@@ -172,7 +173,7 @@ impl Layer {
                 // }
             }
 
-            // If the net improved, train again and return a success.
+            // If the net got worse, train again and return a success.
             if err_sum[0].abs() > err_sum[1].abs() {
                 info!(
                     "Found optimum at {}",
@@ -183,6 +184,11 @@ impl Layer {
                     return (Err(e), err_sum[0]);
                 }
                 return (Ok(()), err_sum[0]);
+            }
+
+            if learn_strength[0] == learn_strength[1] {
+                warn!("Learn strength stopped changing!");
+                return (Err(LayerError::LearnStrengthOutOfPrecision), err_sum[0]);
             }
 
             // Add to learn strength by half of previous step.
