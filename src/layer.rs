@@ -1,6 +1,5 @@
 use log::{debug, info, warn};
 use rand::prelude::*;
-use std::boxed::Box;
 use std::ops::Range;
 
 mod test;
@@ -12,8 +11,7 @@ use colored::Colorize;
 pub enum LayerError {
     ErrStabilized,
     ErrRising,
-    OutOfLearnRange(Box<LayerError>),
-    LearnStrengthOutOfPrecision,
+    OutOfPrecision,
 }
 
 #[derive(Clone, Copy)]
@@ -163,14 +161,6 @@ impl Layer {
 
             if let Err(e) = result.0 {
                 debug!("Learning error: {:?}", e);
-
-                // Check if we run out of learn range.
-                // Not possible with the current learn_strength curve.
-                // Just here in the case that changes.
-                //
-                // if learn_strength[0] >= learn_range.end {
-                // return (Err(LayerError::OutOfLearnRange(Box::new(e))), 0.0);
-                // }
             }
 
             // If the net got worse, train again and return a success.
@@ -186,9 +176,9 @@ impl Layer {
                 return (Ok(()), err_sum[0]);
             }
 
+            // Check if learn strength changes approach maximum precision.
             if learn_strength[0] == learn_strength[1] {
-                warn!("Learn strength stopped changing!");
-                return (Err(LayerError::LearnStrengthOutOfPrecision), err_sum[0]);
+                return (Err(LayerError::OutOfPrecision), err_sum[0]);
             }
 
             // Add to learn strength by half of previous step.
