@@ -301,10 +301,10 @@ mod layer_tests {
         const WEIGHTS: usize = 2;
 
         let test_data = [
-            (vec![0.0, 0.0], 0.0),
-            (vec![0.0, 1.0], 1.0),
-            (vec![1.0, 0.0], 1.0),
-            (vec![0.0, 0.0], 0.0),
+            (vec![0.0, 0.0, 0.0, 0.0], 0.0),
+            (vec![0.0, 1.0, 0.0, 1.0], 1.0),
+            (vec![1.0, 0.0, 1.0, 0.0], 1.0),
+            (vec![0.0, 0.0, 0.0, 0.0], 0.0),
         ];
 
         fn print_group(net: &Vec<Vec<Layer>>) {
@@ -362,20 +362,40 @@ mod layer_tests {
 
             // Get the output from both and check which one is closer.
             for i in &test_data {
-                let res_first =
-                    first[1][0].output(&[first[0][0].output(&i.0).0, first[0][1].output(&i.0).0]);
+                let mut temp_inputs: Vec<f64> = Vec::from(i.0.clone());
+                let mut res_first: Vec<f64> = Vec::with_capacity(i.0.len());
 
-                let res_second = second[1][0]
-                    .output(&[second[0][0].output(&i.0).0, second[0][1].output(&i.0).0]);
+                for i in &first {
+                    res_first.clear();
 
-                first_err += i.1 - res_first.0;
-                second_err += i.1 - res_second.0;
+                    for (index, k) in i.into_iter().enumerate() {
+                        let offset = index * WEIGHTS;
+                        res_first.push(k.output(&temp_inputs[offset..offset + WEIGHTS]).0);
+                    }
+                    temp_inputs = res_first.clone();
+                }
+
+                temp_inputs = Vec::from(i.0.clone());
+                let mut res_second: Vec<f64> = Vec::with_capacity(i.0.len());
+
+                for i in &second {
+                    res_second.clear();
+
+                    for (index, k) in i.into_iter().enumerate() {
+                        let offset = index * WEIGHTS;
+                        res_second.push(k.output(&temp_inputs[offset..offset + WEIGHTS]).0);
+                    }
+                    temp_inputs = res_second.clone();
+                }
+
+                first_err += i.1 - res_first[0];
+                second_err += i.1 - res_second[0];
 
                 info!(
                     "{:?} -> {:.2} | {:.2} + {} {}",
                     i,
-                    res_first.0,
-                    res_second.0,
+                    res_first[0],
+                    res_second[0],
                     format!("{:.2}", first_err).red(),
                     format!("{:.2}", second_err).red()
                 );
