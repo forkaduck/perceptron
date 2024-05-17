@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod layer_tests {
-    use log::{debug, info};
+    use log::info;
     use std::time::Instant;
 
     use crate::layer::{Layer, LayerError, LayerInit};

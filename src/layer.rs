@@ -1,4 +1,4 @@
-use log::{debug, info, warn};
+use log::{debug, info};
 use rand::prelude::*;
 use std::ops::Range;
 
