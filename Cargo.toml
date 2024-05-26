@@ -8,3 +8,4 @@ rand = "0.8.5"
 log = "0.4.21"
 simple_logger = "4.3.0"
 colored = "2.1.0"
+matrix = { path = "./matrix"}
