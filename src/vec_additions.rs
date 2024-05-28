@@ -1,7 +1,7 @@
 pub trait ExtendedStatistics<T> {
     fn avg(&self) -> T;
-    fn max(&self) -> f64;
-    fn min(&self) -> f64;
+    fn max(&self) -> T;
+    fn min(&self) -> T;
     fn dup(&mut self, repeat: usize) -> Vec<T>;
 }
 
@@ -27,4 +27,3 @@ impl ExtendedStatistics<f64> for Vec<f64> {
         temp
     }
 }
-
